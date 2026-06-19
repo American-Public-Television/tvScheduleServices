@@ -1,0 +1,68 @@
+{
+  "zipCodeData": {
+      "$type": "application/vnd.pbs-collection+json",
+      "$elements": "Zipcode",
+      "$self": "https://services.pbs.org/zipcodes/ip/142.44.97.162.json",
+      "$items": [
+          {
+              "$type": "application/vnd.pbs-resource+json",
+              "$self": "https://services.pbs.org/zipcode/02109.json",
+              "$class": "Zipcode",
+              "$links": [
+                  {
+                      "$type": "application/vnd.pbs-collection+json",
+                      "$elements": "CallSign2ZipMapping",
+                      "$accepts": [
+                          {
+                              "$type": "application/vnd.pbs-resource+json",
+                              "$class": "CallSign2ZipMapping"
+                          }
+                      ],
+                      "$self": "https://services.pbs.org/callsigns/zip/02109.json",
+                      "$relationship": "search"
+                  },
+                  {
+                      "$type": "application/vnd.pbs-collection+json",
+                      "$elements": "County",
+                      "$self": "https://services.pbs.org/counties/zip/02109.json",
+                      "$items": [
+                          {
+                              "$type": "application/vnd.pbs-resource+json",
+                              "$self": "https://services.pbs.org/county/025/state/MA.json",
+                              "$class": "County",
+                              "county_name": "SUFFOLK",
+                              "county_code": "025",
+                              "$links": [
+                                  {
+                                      "$type": "application/vnd.pbs-resource+json",
+                                      "$self": "https://services.pbs.org/state/MA.json",
+                                      "$class": "State",
+                                      "$links": [
+                                          {
+                                              "$type": "application/vnd.pbs-collection+json",
+                                              "$elements": "Station2StateMapping",
+                                              "$self": "https://services.pbs.org/stations/state/MA.json",
+                                              "$relationship": "related"
+                                          }
+                                      ],
+                                      "state": "MA",
+                                      "state_name": "Massachusetts",
+                                      "$relationship": "parent"
+                                  }
+                              ]
+                          }
+                      ],
+                      "$relationship": "related"
+                  },
+                  {
+                      "$type": "application/vnd.pbs-collection+json",
+                      "$elements": "Headend",
+                      "$self": null,
+                      "$relationship": "presence"
+                  }
+              ],
+              "zipcode": "02109"
+          }
+      ]
+  }
+}

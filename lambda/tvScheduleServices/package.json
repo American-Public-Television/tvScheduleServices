@@ -1,0 +1,18 @@
+{
+  "name": "tv-schedule-services",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy": "rm -f deployment.zip && zip -r deployment.zip . -x '*.git*' -x '*.zip' -x '*.DS_Store'",
+    "deploy:prod": "rm -f deployment.zip && zip -r deployment.zip . -x '*.git*' -x '*.zip' -x '*.DS_Store' > /dev/null && aws lambda update-function-code --function-name tvScheduleServices --zip-file fileb://deployment.zip --no-cli-pager --output text > /dev/null && aws lambda wait function-updated --function-name tvScheduleServices && aws lambda update-function-configuration --function-name tvScheduleServices --environment 'Variables={SSM_STORE=/tvss/.env-production}' --no-cli-pager --output text > /dev/null && aws lambda wait function-updated --function-name tvScheduleServices && VERSION=$(aws lambda publish-version --function-name tvScheduleServices --no-cli-pager --output json | node -e \"let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>console.log(JSON.parse(d).Version))\") && (aws lambda update-alias --function-name tvScheduleServices --name prod --function-version $VERSION --no-cli-pager --output text > /dev/null 2>&1 || aws lambda create-alias --function-name tvScheduleServices --name prod --function-version $VERSION --no-cli-pager --output text > /dev/null) && echo '✅ Successfully deployed, published, and prod alias updated'"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@aws-sdk/client-ssm": "^3.1072.0",
+    "axios": "^1.18.0"
+  }
+}
