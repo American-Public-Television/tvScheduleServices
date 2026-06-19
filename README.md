@@ -1,6 +1,6 @@
 # tvScheduleServices
 
-An AWS Lambda function that acts as an authenticated API proxy to the PBS scheduling API for a PBS-affiliate TV station website. The frontend posts requests to this service, which handles PBS API authentication, CORS enforcement, and routing.
+An AWS Lambda function and API Gateway (managed via Terraform) that acts as an authenticated API proxy to the PBS scheduling API for a PBS-affiliate TV station website. Handles PBS API authentication, CORS enforcement, and routing.
 
 ## What it does
 
