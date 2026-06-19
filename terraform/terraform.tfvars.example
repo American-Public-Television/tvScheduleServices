@@ -1,0 +1,33 @@
+aws_region     = "us-east-2"
+pbs_auth_token = "your-pbs-auth-token"
+ssm_config     = <<EOT
+{
+  "pbs_endpoints": {
+    "PROGRAM_ENDPOINT": "https://tvss.services.pbs.org/tvss/{callsign}/upcoming/program/{program_id}",
+    "STATION_ENDPOINT": "https://tvss.services.pbs.org/stations/{station_id}/",
+    "EPISODE_ENDPOINT": "https://tvss.services.pbs.org/tvss/{callsign}/upcoming/show/{episode_id}",
+    "KIDS_TODAY_ENDPOINT": "https://tvss.services.pbs.org/tvss/{callsign}/today/kids/",
+    "KIDS_DATE_ENDPOINT": "https://tvss.services.pbs.org/tvss/{callsign}/day/{date}/kids/?fetch-images",
+    "KIDS_FEED_ENDPOINT": "https://tvss.services.pbs.org/tvss/{callsign}/today/kids/{feed_cid}",
+    "SCHEDULE_TODAY_ENDPOINT": "https://tvss.services.pbs.org/tvss/feed/{feed_cid}/today/",
+    "SCHEDULE_DATE_ENDPOINT": "https://tvss.services.pbs.org/tvss/{callsign}/day/{date}",
+    "SCHEDULE_FEED_ENDPOINT": "https://tvss.services.pbs.org/tvss/feed/{feed_cid}/day/{date}/",
+    "SEARCH_UPCOMING_CS_KW_ENDPOINT": "https://tvss.services.pbs.org/tvss/{callsign}/search/upcoming/{search_keyword}/",
+    "SEARCH_CS_KW_ENDPOINT": "https://tvss.services.pbs.org/tvss/{callsign}/search/{search_keyword}/",
+    "SEARCH_UPCOMING_KIDS_ENDPOINT": "https://tvss.services.pbs.org/tvss/{callsign}/search-kids/upcoming/{search_keyword}/",
+    "SEARCH_UPCOMING_CID_KW_ENDPOINT": "https://tvss.services.pbs.org/tvss/feed/{feed_cid}/search/upcoming/{search_keyword}",
+    "SEARCH_SIBLING_ENDPOINT": "https://tvss.services.pbs.org/stations/search/{callsign}/",
+    "SEARCH_KIDS_ENDPOINT": "https://tvss.services.pbs.org/tvss/{callsign}/search-kids/upcoming/{search_keyword}/",
+    "CALLSIGN_ENDPOINT": "https://services.pbs.org/callsigns/zip/",
+    "PROVIDER_ENDPOINT": "https://tvss.services.pbs.org/tvss/",
+    "ZIPCODE_BY_IP_ENDPOINT": "https://services.pbs.org/zipcodes/ip/{ipAddress}.json"
+  },
+  "ALLOWED_ORIGINS": [
+    "http://localhost:5005",
+    "https://createtv.com",
+    "https://aptonline.org",
+    "https://dev.apt-nomi.com",
+    "https://apt-nomi.com"
+  ]
+}
+EOT

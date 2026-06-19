@@ -1,70 +1,45 @@
-# Getting Started with Create React App
+# tvScheduleServices
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+An AWS Lambda function that acts as an authenticated API proxy to the PBS scheduling API for a PBS-affiliate TV station website. The frontend posts requests to this service, which handles PBS API authentication, CORS enforcement, and routing.
 
-## Available Scripts
+## What it does
 
-In the project directory, you can run:
+Accepts POST requests from allowed origins and proxies them to the PBS API, pulling auth credentials and endpoint URLs from AWS SSM Parameter Store at runtime.
 
-### `npm start`
+**Endpoints:**
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+| Path | Description |
+|------|-------------|
+| `/schedule/today` | Full day schedule for a station callsign |
+| `/schedule/date` | Schedule for a specific date |
+| `/schedule/feed` | Schedule filtered by feed/channel ID |
+| `/kids/today` | Kids programming schedule for today |
+| `/kids/date` | Kids schedule for a specific date |
+| `/kids/feed` | Kids schedule filtered by feed ID |
+| `/program` | Program details by callsign and program ID |
+| `/episode` | Episode details by callsign and episode ID |
+| `/stations` | Station info by station ID |
+| `/search/callsign` | Search programs by callsign and keyword |
+| `/search/upcoming_keyword` | Search upcoming programs by keyword |
+| `/search/upcoming_kids` | Search upcoming kids programs |
+| `/search/cid_keyword` | Search by content ID and keyword |
+| `/search/upcoming_cid_keyword` | Search upcoming by content ID and keyword |
+| `/search/siblings` | Find related programs for a callsign |
+| `/search/kids` | Search kids content by keyword |
+| `/zip-from-ip` | Resolve a ZIP code from the caller's IP |
+| `/callsign-from-zip` | Look up station callsigns for a ZIP code |
+| `/provider` | Get cable/satellite providers for a callsign and ZIP |
+| `/host-show` | Find shows associated with a host name |
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+## Configuration
 
-### `npm test`
+All secrets and endpoint URLs are stored in AWS SSM Parameter Store. The function reads its SSM path from the `SSM_STORE` environment variable. The PBS API auth token is stored separately at `/tvss/PBS_AUTH`.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Required SSM parameter (JSON object at `SSM_STORE`):
+- `pbs_endpoints` — PBS API base URLs
+- `createtv_endpoints` — internal API URLs (used by `/host-show`)
+- `ALLOWED_ORIGINS` — list of permitted CORS origins
 
-### `npm run build`
+## Deployment
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+The function is packaged as a zip and deployed via Terraform. The `terraform/dist/` directory holds the build artifact.
