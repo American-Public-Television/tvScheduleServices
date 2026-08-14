@@ -37,6 +37,7 @@ exports.handler = async (event) => {
     const pbsAuth = await getPBS_AUTH()
     const endpoints = ssmParams.pbs_endpoints
     const createtvEndpoints = ssmParams.createtv_endpoints
+    const widgetEndpoints = ssmParams.widget_endpoints
     const allowedOrigins = ssmParams.ALLOWED_ORIGINS
 
     let { headers: { origin } } = event
@@ -52,6 +53,14 @@ exports.handler = async (event) => {
             statusCode: 403,
             headers: corsHeaders,
             body: JSON.stringify({ message: "Origin not allowed" })
+        }
+    }
+
+    if (event.httpMethod === 'OPTIONS') {
+        return {
+            statusCode: 200,
+            headers: corsHeaders,
+            body: ''
         }
     }
 
@@ -97,10 +106,40 @@ exports.handler = async (event) => {
         }
     }
 
+    if (requestedPath.startsWith('/tvss/nola-to-pbs-id/')) {
+        try {
+            const nolaCode = requestedPath.split('/tvss/nola-to-pbs-id/')[1]
+
+            if (!nolaCode) {
+                return {
+                    statusCode: 400,
+                    headers: corsHeaders,
+                    body: JSON.stringify({ message: "NOLA code is required" })
+                }
+            }
+
+            const url = `${widgetEndpoints.NOLA_ENDPOINT}/${encodeURIComponent(nolaCode)}`
+            const response = await axios.get(url)
+
+            return {
+                statusCode: 200,
+                headers: corsHeaders,
+                body: JSON.stringify({ pbs_id: response.data.pbs_id })
+            }
+        } catch (error) {
+            console.error("Error fetching pbs_id for NOLA code:", error)
+            return {
+                statusCode: 500,
+                headers: corsHeaders,
+                body: JSON.stringify({ error: error.message })
+            }
+        }
+    }
+
     if (requestedPath === '/zip-from-ip') {
         try {
             const ipAddress = event.requestContext.identity.sourceIp
-            const zipCodeData = await fetchZipCodeByIP(ipAddress, endpoints.ZIPCODE_BY_IP_ENDPOINT)
+            const zipCodeData = await fetchZipCodeByIP(ipAddress, endpoints.ZIPCODE_BY_IP_ENDPOINT, pbsAuth)
             return {
                 statusCode: 200,
                 headers: corsHeaders,
@@ -129,7 +168,7 @@ exports.handler = async (event) => {
             const zip = requestBody.zip
             const url = `${endpoints.CALLSIGN_ENDPOINT}${zip}.json`
 
-            const callsignData = await axios.get(url)
+            const callsignData = await axios.get(url, { headers: { 'X-PBSAUTH': pbsAuth } })
 
             return {
                 statusCode: 200,
@@ -201,10 +240,10 @@ exports.handler = async (event) => {
     }
 }
 
-const fetchZipCodeByIP = async (ipAddress, endpoint) => {
+const fetchZipCodeByIP = async (ipAddress, endpoint, pbsAuth) => {
     const url = endpoint.replace(`{ipAddress}`, ipAddress)
     try {
-        const response = await axios.get(url)
+        const response = await axios.get(url, { headers: { 'X-PBSAUTH': pbsAuth } })
         return response.data
     } catch (error) {
         console.error("Error fetching zip code data:", error)
@@ -228,7 +267,7 @@ const fetchDataForEndpoint = async (requestBody, requestedPath, pbsAuth) => {
 
     const urlMap = {
         '/program': endpoints.PROGRAM_ENDPOINT?.replace('{callsign}', requestBody.callsign)
-            .replace('{program_id}', requestBody.program_id || requestBody.tms_id),
+            .replace('{pbs_id}', requestBody.pbs_id || requestBody.tms_id),
         '/stations': endpoints.STATION_ENDPOINT?.replace('{station_id}', requestBody.station_id),
         '/episode': endpoints.EPISODE_ENDPOINT?.replace('{callsign}', requestBody.callsign)
             .replace('{episode_id}', requestBody.episode_id || requestBody.onetimeonly_id),
