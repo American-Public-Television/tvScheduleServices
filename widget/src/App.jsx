@@ -63,8 +63,11 @@ function App() {
       )
       setEpisodes(merged)
 
-      if (preferredProviderCid && providers.some((h) => h.cid === preferredProviderCid)) {
-        setSelectedHeadendCid(preferredProviderCid)
+      if (providers.length > 0) {
+        const matchedCid = providers.some((h) => h.cid === preferredProviderCid)
+          ? preferredProviderCid
+          : providers[0].cid
+        setSelectedHeadendCid(matchedCid)
         setFormVisible(false)
       } else {
         setSelectedHeadendCid('')
