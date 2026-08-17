@@ -27,6 +27,8 @@ jobs:
 
       - name: Build
         working-directory: widget
+        env:
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
         run: npm run build
 
       - name: Configure AWS credentials

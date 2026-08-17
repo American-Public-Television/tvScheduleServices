@@ -25,7 +25,7 @@ variable "widget_bucket_name" {
 variable "github_repo" {
   description = "GitHub repo (owner/name) allowed to assume the widget deploy role via OIDC"
   type        = string
-  default     = "3rendan/tvScheduleServices"
+  default     = "American-Public-Television/tvScheduleServices"
 }
 
 variable "github_deploy_branch" {
