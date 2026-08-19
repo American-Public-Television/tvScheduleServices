@@ -1,12 +1,18 @@
 import { useEffect, useState } from 'react'
-import { getCallsignsFromZip, getProgram, getProviders, getZipFromIp } from './lib/api'
+import { getCallsignsFromZip, getPbsIdFromNola, getProgram, getProviders, getZipFromIp } from './lib/api'
 import { getCookie, setCookie } from './lib/cookies'
 import { formatBroadcastChannel, formatDayHeader, formatProviderChannel, formatStartTime } from './lib/format'
 import './App.css'
 
-const PBS_ID = '7840'
+// Fallback used only when the page has no ?nola= param (e.g. local dev)
+const DEFAULT_PBS_ID = '7840'
 const ZIP_COOKIE = 'tvss_zip'
 const PROVIDER_COOKIE = 'tvss_provider'
+
+function getNolaCodeFromQuery() {
+  const nola = new URLSearchParams(window.location.search).get('nola')
+  return nola ? nola.slice(-4) : null
+}
 
 function groupByDay(episodes) {
   const groups = new Map()
@@ -29,22 +35,35 @@ function App() {
   const [episodes, setEpisodes] = useState([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [pbsId, setPbsId] = useState(DEFAULT_PBS_ID)
 
   useEffect(() => {
     const init = async () => {
+      const nolaCode = getNolaCodeFromQuery()
+      let resolvedPbsId = DEFAULT_PBS_ID
+      if (nolaCode) {
+        resolvedPbsId = await getPbsIdFromNola(nolaCode).catch(() => null)
+        if (!resolvedPbsId) {
+          setError('Unable to resolve program for this page')
+          return
+        }
+        setPbsId(resolvedPbsId)
+      }
+
       const cookieZip = getCookie(ZIP_COOKIE)
       const initialZip = cookieZip || (await getZipFromIp().catch(() => null))
       if (initialZip) {
         setZip(initialZip)
-        await lookup(initialZip, getCookie(PROVIDER_COOKIE))
+        await lookup(initialZip, getCookie(PROVIDER_COOKIE), resolvedPbsId)
       }
     }
     init()
   }, [])
 
-  const lookup = async (zipValue, preferredProviderCid) => {
+  const lookup = async (zipValue, preferredProviderCid, pbsIdValue = pbsId) => {
     setLoading(true)
     setError(null)
+    setSelectedCallsign('')
     try {
       const resolvedCallsigns = await getCallsignsFromZip(zipValue)
       if (resolvedCallsigns.length === 0) {
@@ -54,7 +73,7 @@ function App() {
 
       const [providers, ...programs] = await Promise.all([
         getProviders(resolvedCallsigns[0], zipValue),
-        ...resolvedCallsigns.map((cs) => getProgram(cs, PBS_ID)),
+        ...resolvedCallsigns.map((cs) => getProgram(cs, pbsIdValue)),
       ])
       setHeadends(providers)
 

@@ -2,9 +2,6 @@ aws_region     = "us-east-2"
 pbs_auth_token = "your-pbs-auth-token"
 ssm_config     = <<EOT
 {
-  "widget_endpoints": {
-    "NOLA_ENDPOINT": "https://1xspcthx03.execute-api.us-east-2.amazonaws.com/prod/tvss/nola-to-pbs-id"
-  },
   "pbs_endpoints": {
     "PROGRAM_ENDPOINT": "https://tvss.services.pbs.org/tvss/{callsign}/upcoming/program/{pbs_id}",
     "STATION_ENDPOINT": "https://tvss.services.pbs.org/stations/{station_id}/",

@@ -37,7 +37,6 @@ exports.handler = async (event) => {
     const pbsAuth = await getPBS_AUTH()
     const endpoints = ssmParams.pbs_endpoints
     const createtvEndpoints = ssmParams.createtv_endpoints
-    const widgetEndpoints = ssmParams.widget_endpoints
     const allowedOrigins = ssmParams.ALLOWED_ORIGINS
 
     let { headers: { origin } } = event
@@ -98,36 +97,6 @@ exports.handler = async (event) => {
             }
         } catch (error) {
             console.error("Error fetching host-show data:", error)
-            return {
-                statusCode: 500,
-                headers: corsHeaders,
-                body: JSON.stringify({ error: error.message })
-            }
-        }
-    }
-
-    if (requestedPath.startsWith('/tvss/nola-to-pbs-id/')) {
-        try {
-            const nolaCode = requestedPath.split('/tvss/nola-to-pbs-id/')[1]
-
-            if (!nolaCode) {
-                return {
-                    statusCode: 400,
-                    headers: corsHeaders,
-                    body: JSON.stringify({ message: "NOLA code is required" })
-                }
-            }
-
-            const url = `${widgetEndpoints.NOLA_ENDPOINT}/${encodeURIComponent(nolaCode)}`
-            const response = await axios.get(url)
-
-            return {
-                statusCode: 200,
-                headers: corsHeaders,
-                body: JSON.stringify({ pbs_id: response.data.pbs_id })
-            }
-        } catch (error) {
-            console.error("Error fetching pbs_id for NOLA code:", error)
             return {
                 statusCode: 500,
                 headers: corsHeaders,

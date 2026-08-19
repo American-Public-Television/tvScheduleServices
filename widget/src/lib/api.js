@@ -1,4 +1,5 @@
 const BASE_URL = import.meta.env.VITE_API_BASE_URL
+const NOLA_ENDPOINT = import.meta.env.VITE_NOLA_ENDPOINT
 
 async function postJSON(path, body) {
   const res = await fetch(`${BASE_URL}${path}`, {
@@ -37,4 +38,13 @@ export async function getProviders(callsign, zip) {
 export async function getProgram(callsign, pbsId) {
   const data = await postJSON('/program', { callsign, pbs_id: pbsId })
   return data.response
+}
+
+export async function getPbsIdFromNola(nolaCode) {
+  const res = await fetch(`${NOLA_ENDPOINT}/${encodeURIComponent(nolaCode)}`)
+  if (!res.ok) {
+    throw new Error(`NOLA lookup failed with status ${res.status}`)
+  }
+  const data = await res.json()
+  return data.pbs_program_id ?? null
 }
