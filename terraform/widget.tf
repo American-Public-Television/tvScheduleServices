@@ -24,6 +24,7 @@ resource "aws_cloudfront_origin_access_control" "widget" {
 
 resource "aws_cloudfront_distribution" "widget" {
   enabled             = true
+  comment             = "schedule widget"
   default_root_object = "index.html"
   price_class         = "PriceClass_100"
 

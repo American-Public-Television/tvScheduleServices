@@ -1,5 +1,7 @@
 # tvScheduleServices
 
+> **Moved 2026-10-21.** The Lambda and its API are managed in `createtv_cms_devsite` (`terraform/tvss.tf`, `lambda/tvScheduleServices/`). This repo keeps only the widget hosting Terraform.
+
 An AWS Lambda function and API Gateway (managed via Terraform) that acts as an authenticated API proxy to the PBS scheduling API for a PBS-affiliate TV station website, plus a React widget that uses it to show TV listings for a program.
 
 ## Repo structure
@@ -72,16 +74,11 @@ Zips the source, pushes it via `aws lambda update-function-code`, updates the `S
 
 ## Terraform (`terraform/`)
 
-Manages the Lambda function, its IAM role, the API Gateway (REST API with a single `{proxy+}` catch-all route to the Lambda), and the two SSM parameters (`/tvss/PBS_AUTH` and `/tvss/.env-production`).
+Manages only the widget hosting: the `tvss-widget` bucket, its CloudFront distribution, and the `tvss-github-actions-widget-deploy` role that `apt_web`'s deploy workflow assumes. The trust list is `github_deploy_subjects` in `variables.tf`, matching the live role.
 
-Copy `terraform.tfvars.example` to `terraform.tfvars` (gitignored) and fill in `pbs_auth_token` and `ssm_config`, then:
+The Lambda, `tvss-api`, the Lambda's IAM role and the `/tvss/*` parameters moved to `createtv_cms_devsite` (`terraform/tvss.tf`) on 2026-10-21. `tvss_removed.tf` dropped them from this state without destroying them. Never apply them from here.
 
-```
-terraform plan
-terraform apply
-```
-
-`terraform apply` will also pick up any drift in the Lambda's source code (its hash is computed from `lambda/tvScheduleServices/` at plan time), so running it after `npm run deploy` is a no-op for the code itself.
+State is local (`terraform/terraform.tfstate`). `terraform.tfvars` no longer needs `pbs_auth_token` or `ssm_config`; remove those values from it.
 
 ## Widget (`widget/`)
 
