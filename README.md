@@ -2,75 +2,21 @@
 
 > **Moved 2026-10-21.** The Lambda and its API are managed in `createtv_cms_devsite` (`terraform/tvss.tf`, `lambda/tvScheduleServices/`). This repo keeps only the widget hosting Terraform.
 
-An AWS Lambda function and API Gateway (managed via Terraform) that acts as an authenticated API proxy to the PBS scheduling API for a PBS-affiliate TV station website, plus a React widget that uses it to show TV listings for a program.
+An AWS Lambda function and API Gateway that acts as an authenticated API proxy to the PBS scheduling API for a PBS-affiliate TV station website, plus a React widget that uses it to show TV listings for a program.
 
 ## Repo structure
 
 | Directory                    | Contents                                                                                             |
 | ---------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `lambda/tvScheduleServices/` | The Lambda function source (`index.js`) that proxies PBS API requests                                |
-| `terraform/`                 | Infrastructure as code for the Lambda, API Gateway, IAM role, and SSM parameters                     |
+| `terraform/`                 | Infrastructure as code for the widget hosting only                                                   |
 | `widget/`                    | A React (Vite) single-page widget, embedded via iframe, that looks up TV listings for a program by ZIP code and provider |
 | `notes/`                     | Project planning notes                                                                               |
 
-## Lambda (`lambda/tvScheduleServices/`)
+## Lambda
 
-Accepts requests from allowed origins and proxies them to the PBS API (and a couple of other upstream APIs), pulling auth credentials and endpoint URLs from AWS SSM Parameter Store at runtime.
+The Lambda code, its deploy script, `tvss-api`, its IAM role and the `/tvss/*` parameters live in `createtv_cms_devsite` since 2026-10-21: code in `lambda/tvScheduleServices/` (deploy with `npm run deploy` there, after asking), Terraform in `terraform/tvss.tf`. The parameter values are set by a person in Parameter Store, never by Terraform. Do not deploy the Lambda from this repo.
 
-**Endpoints:**
-
-| Path                               | Description                                                                                          |
-| ---------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `/schedule/today`                  | Full day schedule for a station callsign                                                             |
-| `/schedule/date`                   | Schedule for a specific date                                                                         |
-| `/schedule/feed`                   | Schedule filtered by feed/channel ID                                                                 |
-| `/kids/today`                      | Kids programming schedule for today                                                                  |
-| `/kids/date`                       | Kids schedule for a specific date                                                                    |
-| `/kids/feed`                       | Kids schedule filtered by feed ID                                                                    |
-| `/program`                         | Program details (including upcoming airings) by callsign and `pbs_id`                                |
-| `/episode`                         | Episode details by callsign and episode ID                                                           |
-| `/stations`                        | Station info by station ID                                                                           |
-| `/search/callsign`                 | Search programs by callsign and keyword                                                              |
-| `/search/upcoming_keyword`         | Search upcoming programs by keyword                                                                  |
-| `/search/upcoming_kids`            | Search upcoming kids programs                                                                        |
-| `/search/cid_keyword`              | Search by content ID and keyword                                                                     |
-| `/search/upcoming_cid_keyword`     | Search upcoming by content ID and keyword                                                            |
-| `/search/siblings`                 | Find related programs for a callsign                                                                 |
-| `/search/kids`                     | Search kids content by keyword                                                                       |
-| `/zip-from-ip`                     | Resolve a ZIP code from the caller's IP                                                              |
-| `/callsign-from-zip`               | Look up station callsigns for a ZIP code                                                             |
-| `/provider`                        | Get cable/satellite/broadcast providers (headends) for a callsign and ZIP                            |
-| `/host-show`                       | Find shows associated with a host name (internal CreateTV API)                                       |
-| `/tvss/nola-to-pbs-id/{nola_code}` | GET-only. Resolves a program's NOLA code to its `pbs_id`, via a separate internal API Gateway (not PBS's) |
-
-All routes are served through a single catch-all API Gateway `{proxy+}` resource, so adding a new route only requires a change in `index.js` — no Terraform changes needed.
-
-CORS is enforced against `ALLOWED_ORIGINS`, and `OPTIONS` preflight requests are short-circuited with a 200 before any route-specific logic runs.
-
-### Configuration
-
-All secrets and endpoint URLs are stored in AWS SSM Parameter Store. The function reads its SSM path from the `SSM_STORE` environment variable (`/tvss/.env-production`). The PBS API auth token is stored separately at `/tvss/PBS_AUTH` and sent as the `X-PBSAUTH` header on every `pbs_endpoints` call.
-
-Required SSM parameter (JSON object at `SSM_STORE`):
-
-- `widget_endpoints` — endpoints specific to the widget (currently `NOLA_ENDPOINT`, the other API Gateway used to resolve NOLA codes)
-- `pbs_endpoints` — PBS API base URLs
-- `createtv_endpoints` — internal CreateTV API URLs (used by `/host-show`)
-- `ALLOWED_ORIGINS` — list of permitted CORS origins
-
-A reference copy of this JSON lives in the repo-root `.env.production` (gitignored, not the live source of truth — see Deployment below).
-
-### Deployment
-
-From `lambda/tvScheduleServices/`:
-
-```
-npm run deploy
-```
-
-Zips the source, pushes it via `aws lambda update-function-code`, updates the `SSM_STORE` env var, publishes a new version, and points the `prod` alias at it. This updates the Lambda's code directly and does not touch Terraform state or the SSM config value — use `terraform apply` (below) to push SSM config changes (like `ALLOWED_ORIGINS`) live.
-
-`npm run package` just zips the source into `deployment.zip` without deploying anywhere.
+The live code matched this repo's `prod` branch. `trunk` also holds an undeployed `/tvss/nola-to-pbs-id/` route; port it from this repo's history if it is wanted.
 
 ## Terraform (`terraform/`)
 
