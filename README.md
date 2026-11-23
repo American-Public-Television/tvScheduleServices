@@ -1,6 +1,6 @@
 # tvScheduleServices
 
-> **Moved 2026-10-21.** The Lambda and its API are managed in `createtv_cms_devsite` (`terraform/tvss.tf`, `lambda/tvScheduleServices/`). This repo keeps only the widget hosting Terraform.
+> **Moved.** The Lambda and its API moved to `createtv_cms_devsite` (`terraform/tvss.tf`, `lambda/tvScheduleServices/`) on 2026-10-21. The widget hosting moved to `aptonline_cms_devsite` (`terraform/widgets.tf`) on 2026-11-23. This repo manages no AWS resources.
 
 An AWS Lambda function and API Gateway that acts as an authenticated API proxy to the PBS scheduling API for a PBS-affiliate TV station website, plus a React widget that uses it to show TV listings for a program.
 
@@ -8,7 +8,7 @@ An AWS Lambda function and API Gateway that acts as an authenticated API proxy t
 
 | Directory                    | Contents                                                                                             |
 | ---------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `terraform/`                 | Infrastructure as code for the widget hosting only                                                   |
+| `terraform/`                 | Nothing live. Only `removed` blocks that released the moved resources                                |
 | `widget/`                    | A React (Vite) single-page widget, embedded via iframe, that looks up TV listings for a program by ZIP code and provider |
 | `notes/`                     | Project planning notes                                                                               |
 
@@ -20,7 +20,7 @@ The live code matched this repo's `prod` branch. `trunk` also holds an undeploye
 
 ## Terraform (`terraform/`)
 
-Manages only the widget hosting: the `tvss-widget` bucket, its CloudFront distribution, and the `tvss-github-actions-widget-deploy` role that `apt_web`'s deploy workflow assumes. The trust list is `github_deploy_subjects` in `variables.tf`, matching the live role.
+Manages nothing. The widget hosting (the `tvss-widget` bucket, its CloudFront distribution `EHR6G9DPJMA79`, its access control and the `tvss-github-actions-widget-deploy` role) moved to `aptonline_cms_devsite` `terraform/widgets.tf` on 2026-11-23. `widget_removed.tf` dropped it from this state without destroying it. Never apply it from here.
 
 The Lambda, `tvss-api`, the Lambda's IAM role and the `/tvss/*` parameters moved to `createtv_cms_devsite` (`terraform/tvss.tf`) on 2026-10-21. `tvss_removed.tf` dropped them from this state without destroying them. Never apply them from here.
 
